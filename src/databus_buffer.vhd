@@ -16,12 +16,32 @@ ENTITY databus_buffer IS
       CTRL:     IN      BIT;
       ODATA:    INOUT   STD_LOGIC_VECTOR(7 DOWNTO 0)
     );
-  --is a 3 state bidirection 8 bit buffer.
+
     
 
 END databus_buffer;
 ARCHITECTURE behaviour OF databus_buffer IS
--- behaviour of xor_gate
+-- behaviour of databus buffer;
+  SIGNAL S_idata:       STD_LOGIC_VECTOR(7 DOWNTO 0);
+  SIGNAL S_odata:       STD_LOGIC_VECTOR(7 DOWNTO 0);
+  SIGNAL S_ctrl:        BIT;
 BEGIN
+-- is a 3 state bidirection 8 bit buffer.
+-- if CTRL is 1, IDATA=ODATA; reading from counter operation
+-- if CTRL is 0, ODATA=IDATA; writing to control word
+-- if CTRL is Z, IDATA=Z; this happens when nor read and write are active but
+-- cs is active;
+-- also, data bus can be in 3rd state if the chip is not selected, this means
+-- that CTRL will be Z;
+  PROCESS(CTRL)
+    BEGIN
+      S_idata<=IDATA;
+      S_odata<=ODATA;
+      CASE CTRL IS
+        WHEN '0' => ODATA<=S_idata;
+        WHEN '1' => IDATA<=S_odata;
+        WHEN OTHERS => IDATA<="ZZZZZZZZ";ODATA<="ZZZZZZZZ";
+      END CASE;
+    END PROCESS;            
   
 END behaviour;  
