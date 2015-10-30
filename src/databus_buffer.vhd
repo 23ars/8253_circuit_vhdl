@@ -13,7 +13,7 @@ ENTITY databus_buffer IS
       --IDATA represent the bus lines that comes from the uC for reading and writing;
       --ODATA represents the bus lines that communicate with the internal bus;
       IDATA:    INOUT   STD_LOGIC_VECTOR(7 DOWNTO 0);
-      CTRL:     IN      BIT;
+      CTRL:     IN      STD_LOGIC;
       ODATA:    INOUT   STD_LOGIC_VECTOR(7 DOWNTO 0)
     );
 
@@ -24,7 +24,8 @@ ARCHITECTURE behaviour OF databus_buffer IS
 -- behaviour of databus buffer;
   SIGNAL S_idata:       STD_LOGIC_VECTOR(7 DOWNTO 0);
   SIGNAL S_odata:       STD_LOGIC_VECTOR(7 DOWNTO 0);
-  SIGNAL S_ctrl:        BIT;
+  SIGNAL S_ctrl:        STD_LOGIC
+;
 BEGIN
 -- is a 3 state bidirection 8 bit buffer.
 -- if CTRL is 1, IDATA=ODATA; reading from counter operation
