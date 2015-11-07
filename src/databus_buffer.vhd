@@ -22,8 +22,15 @@ ENTITY databus_buffer IS
 END databus_buffer;
 ARCHITECTURE behaviour OF databus_buffer IS
 -- behaviour of databus buffer;
+<<<<<<< HEAD
 
 
+=======
+  SIGNAL S_idata:       STD_LOGIC_VECTOR(7 DOWNTO 0);
+  SIGNAL S_odata:       STD_LOGIC_VECTOR(7 DOWNTO 0);
+  SIGNAL S_ctrl:        STD_LOGIC
+;
+>>>>>>> a814301220fffecdbbd5298d504e1b6d3c9ecc9a
 BEGIN
 -- is a 3 state bidirection 8 bit buffer.
 -- if CTRL is 1, IDATA=ODATA; reading from counter operation
