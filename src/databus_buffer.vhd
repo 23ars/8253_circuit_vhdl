@@ -13,7 +13,7 @@ ENTITY databus_buffer IS
       --IDATA represent the bus lines that comes from the uC for reading and writing;
       --ODATA represents the bus lines that communicate with the internal bus;
       IDATA:    INOUT   STD_LOGIC_VECTOR(7 DOWNTO 0);
-      CTRL:     IN      BIT;
+      CTRL:     IN      STD_LOGIC;
       ODATA:    INOUT   STD_LOGIC_VECTOR(7 DOWNTO 0)
     );
 
@@ -22,9 +22,8 @@ ENTITY databus_buffer IS
 END databus_buffer;
 ARCHITECTURE behaviour OF databus_buffer IS
 -- behaviour of databus buffer;
-  SIGNAL S_idata:       STD_LOGIC_VECTOR(7 DOWNTO 0);
-  SIGNAL S_odata:       STD_LOGIC_VECTOR(7 DOWNTO 0);
-  SIGNAL S_ctrl:        BIT;
+
+
 BEGIN
 -- is a 3 state bidirection 8 bit buffer.
 -- if CTRL is 1, IDATA=ODATA; reading from counter operation
@@ -33,13 +32,11 @@ BEGIN
 -- cs is active;
 -- also, data bus can be in 3rd state if the chip is not selected, this means
 -- that CTRL will be Z;
-  PROCESS(CTRL)
+  PROCESS(CTRL,IDATA,ODATA) 
     BEGIN
-      S_idata<=IDATA;
-      S_odata<=ODATA;
       CASE CTRL IS
-        WHEN '0' => ODATA<=S_idata;
-        WHEN '1' => IDATA<=S_odata;
+        WHEN '0' => ODATA<=IDATA;--S_idata;
+        WHEN '1' => IDATA<=ODATA;--S_odata;
         WHEN OTHERS => IDATA<="ZZZZZZZZ";ODATA<="ZZZZZZZZ";
       END CASE;
     END PROCESS;            
