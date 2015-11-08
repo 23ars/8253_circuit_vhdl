@@ -1,5 +1,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 ----------------------------
 -- COUNTER
 ----------------------------
@@ -31,52 +32,65 @@ ARCHITECTURE behaviour OF counter IS
   --MODE 0;
   --after programming OUT->0 until counter will be 0. 
  
-  SIGNAL MODE:STD_LOGIC_VECTOR(2 DOWNTO 0):="ZZZ";
+  SIGNAL MODE:STD_LOGIC_VECTOR(2 DOWNTO 0):="ZZZ";              --used for
+                                                                --saving mode
 
-  PROCEDURE mode0_count
-    ( COUNTER:  IN      STD_LOGIC_VECTOR(15 DOWNTO 0);
-      RET_COUNT:OUT     STD_LOGIC_VECTOR(15 DOWNTO 0)
+  PROCEDURE mode0_count                                         --procedure for
+                                                                --count mode 0
+    ( COUNTER:  IN      STD_LOGIC_VECTOR(15 DOWNTO 0);          --input variable
+      RET_COUNT:OUT     STD_LOGIC_VECTOR(15 DOWNTO 0);          --out variable
+      OUTPUT:   OUT     STD_LOGIC                               --value of
+                                                                --output line
       )IS
   BEGIN
-    IF (COUNTER="0000000000000000") THEN
-      OUTPUT<='1';
-    ELSE 
-      RET_COUNT:=COUNTER-1;
+    IF (COUNTER="0000000000000000") THEN                        --if count is 0
+      OUTPUT:='1';                                              --output will
+                                                                --be 1
+    ELSE
+      RET_COUNT:=std_logic_vector(unsigned(COUNTER)- 1);
+ 
     END IF;
   END mode0_count;
   
 BEGIN
   
   PROCESS(CLK,CTRL) IS
--- if ctrl=1 then counter is in programming mode. this means that will read
--- data from external bus;
-    VARIABLE COUNT:STD_LOGIC_VECTOR(15 DOWNTO 0):="ZZZZZZZZZZZZZZZZ";
+    VARIABLE COUNT:STD_LOGIC_VECTOR(15 DOWNTO 0):="ZZZZZZZZZZZZZZZZ"; --used
+                                                                      --for counting
+    VARIABLE S_OUT:STD_LOGIC;               --used for assigning value to out line
   BEGIN
     
-    IF (CTRL="01") THEN
+    IF (CTRL="01") THEN                     --programming mode: load mode
       MODE(0)<=DATA(0);
       MODE(1)<=DATA(1);
       MODE(2)<=DATA(2);
-    ELSIF (CTRL="10") THEN
+    ELSIF (CTRL="10") THEN                  --programming mode: load lowest
+                                            --nibble of counter
       FOR index IN 0 TO 7 LOOP
         COUNT(index):=DATA(index);
       END LOOP;
-    ELSIF (CTRL="11") THEN
+    ELSIF (CTRL="11") THEN                  --programming mode:load highest
+                                            --nibble of counter
       FOR index IN 0 TO 7 LOOP
         COUNT(index+8):=DATA(index);
       END LOOP;
-    ELSIF (CTRL="00") THEN
+    ELSIF (CTRL="00") THEN                  --reading mode
       --data=count;
     END IF;         
   
-    IF (CLK'EVENT AND CLK='1' AND GATE='0' AND CTRL="ZZ") THEN
-      OUTPUT<='0';
+    IF (CLK'EVENT AND CLK='1' AND GATE='0' AND CTRL="ZZ") THEN --only on clk
+                                                               --transitions,
+                                                               --with gate=1
+                                                               --and ctrl in
+                                                               --count mode
+      S_OUT:='0';
       CASE MODE IS
-        WHEN "000"=>mode0_count(COUNT,COUNT);
+        WHEN "000"=>mode0_count(COUNT,COUNT,S_OUT);
+          
         WHEN OTHERS => null;        
       END CASE ; 
     END IF;
-
+    OUTPUT<=S_OUT;
   END PROCESS;
 
 
