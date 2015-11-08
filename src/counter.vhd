@@ -59,6 +59,10 @@ BEGIN
                                                                       --for counting
     VARIABLE S_OUT:STD_LOGIC;               --used for assigning value to out line
   BEGIN
+    IF (CTRL/="ZZ") THEN
+      S_OUT:='1';
+      OUTPUT<='1';
+    END IF;
     
     IF (CTRL="01") THEN                     --programming mode: load mode
       MODE(0)<=DATA(0);
@@ -84,6 +88,7 @@ BEGIN
                                                                --and ctrl in
                                                                --count mode
       S_OUT:='0';
+      OUTPUT<='0';
       CASE MODE IS
         WHEN "000"=>mode0_count(COUNT,COUNT,S_OUT);
           
