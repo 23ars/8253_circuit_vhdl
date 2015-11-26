@@ -17,85 +17,128 @@ ENTITY counter IS
   -- 11 means read higher byte of data
   -- ZZ means start counting
 -- COUNT:       16 bit counter  ->varible/register
-  PORT
-    (
-      CLK:        IN      STD_LOGIC;
-      GATE:       IN      STD_LOGIC;
-      OUTPUT:     OUT     STD_LOGIC;
-      DATA:       INOUT   STD_LOGIC_VECTOR(7 DOWNTO 0);
-      CTRL:       IN      STD_LOGIC_VECTOR(1 DOWNTO 0)
-      );
+	PORT
+	(
+		CLK:        IN      STD_LOGIC;
+		GATE:       IN      STD_LOGIC;
+		OUTPUT:     OUT     STD_LOGIC;
+		DATA:       INOUT   STD_LOGIC_VECTOR(7 DOWNTO 0);
+		CTRL:       IN      STD_LOGIC_VECTOR(1 DOWNTO 0)
+	);
 END counter;
 ARCHITECTURE behaviour OF counter IS
 -- behaviour of counter
 
-  --MODE 0;
-  --after programming OUT->0 until counter will be 0. 
+--MODE 0;
+--after programming OUT->0 until counter will be 0. 
  
-  SIGNAL MODE:STD_LOGIC_VECTOR(2 DOWNTO 0):="ZZZ";              --used for
-                                                                --saving mode
+	SIGNAL MODE:STD_LOGIC_VECTOR(2 DOWNTO 0):="ZZZ";              --used for
+  	                                                              --saving mode
 
-  PROCEDURE mode0_count                                         --procedure for
-                                                                --count mode 0
-    ( COUNTER:  IN      STD_LOGIC_VECTOR(15 DOWNTO 0);          --input variable
-      RET_COUNT:OUT     STD_LOGIC_VECTOR(15 DOWNTO 0);          --out variable
-      OUTPUT:   OUT     STD_LOGIC                               --value of
+	PROCEDURE mode0_count                                         --procedure for
+         	                                                      --count mode 0
+	(
+		COUNTER:  IN      STD_LOGIC_VECTOR(15 DOWNTO 0);          --input variable
+		RET_COUNT:OUT     STD_LOGIC_VECTOR(15 DOWNTO 0);          --out variable
+		OUTPUT:   OUT     STD_LOGIC                               --value of
                                                                 --output line
-      )IS
-  BEGIN
-    IF (COUNTER="0000000000000000") THEN                        --if count is 0
-      OUTPUT:='1';                                              --output will
-                                                                --be 1
-    ELSE
-      RET_COUNT:=std_logic_vector(unsigned(COUNTER)- 1);
+	)IS
+	BEGIN
+		IF (COUNTER="0000000000000000") THEN                        --if count is 0
+			OUTPUT:='1';                                        --output will
+                                     			                    --be 1
+		ELSE
+			RET_COUNT:=std_logic_vector(unsigned(COUNTER)- 1);
  
-    END IF;
-  END mode0_count;
+		END IF;
+	END mode0_count;
+
+	PROCEDURE mode4_count
+	(
+		COUNTER:	IN	STD_LOGIC_VECTOR(15 DOWNTO 0);
+		RET_COUNT:	OUT	STD_LOGIC_VECTOR(15 DOWNTO 0);
+		OUTPUT:		OUT	STD_LOGIC
+     	)IS
+	BEGIN
+		IF(COUNTER="0000000000000000") THEN
+			OUTPUT:='0';
+		ELSE
+			RET_COUNT:=std_logic_vector(unsigned(COUNTER)- 1);
+		END IF;
+	END mode4_count;
+	
+	PROCEDURE mode5_count
+	(
+		COUNTER:	IN	STD_LOGIC_VECTOR(15 DOWNTO 0);
+		RET_COUNT:	OUT	STD_LOGIC_VECTOR(15 DOWNTO 0);
+		OUTPUT:		OUT	STD_LOGIC
+     	)IS
+	BEGIN
+		IF(COUNTER="0000000000000000") THEN
+			OUTPUT:='0';
+		ELSE
+			RET_COUNT:=std_logic_vector(unsigned(COUNTER)- 1);
+		END IF;
+	END mode5_count;
+
   
 BEGIN
-  
-  PROCESS(CLK,CTRL) IS
-    VARIABLE COUNT:STD_LOGIC_VECTOR(15 DOWNTO 0):="ZZZZZZZZZZZZZZZZ"; --used
-                                                                      --for counting
-    VARIABLE S_OUT:STD_LOGIC;               --used for assigning value to out line
-  BEGIN
-    IF (CTRL/="ZZ") THEN
-      S_OUT:='1';
-      OUTPUT<='1';
-    END IF;
+	PROCESS(CLK,CTRL) IS
+		VARIABLE COUNT:STD_LOGIC_VECTOR(15 DOWNTO 0):="ZZZZZZZZZZZZZZZZ"; 	--used
+	                                                                  		--for counting
+		VARIABLE BUFFER_COUNT:STD_LOGIC_VECTOR(15 DOWNTO 0):="ZZZZZZZZZZZZZZZZ";
+		VARIABLE S_OUT:STD_LOGIC:='1';               --used for assigning value to out line
+
+	BEGIN
+		IF (CTRL/="ZZ") THEN
+			OUTPUT<=S_OUT;
+		END IF;
     
-    IF (CTRL="01") THEN                     --programming mode: load mode
-      MODE(0)<=DATA(0);
-      MODE(1)<=DATA(1);
-      MODE(2)<=DATA(2);
-    ELSIF (CTRL="10") THEN                  --programming mode: load lowest
-                                            --nibble of counter
-      FOR index IN 0 TO 7 LOOP
-        COUNT(index):=DATA(index);
-      END LOOP;
-    ELSIF (CTRL="11") THEN                  --programming mode:load highest
-                                            --nibble of counter
-      FOR index IN 0 TO 7 LOOP
-        COUNT(index+8):=DATA(index);
-      END LOOP;
-    ELSIF (CTRL="00") THEN                  --reading mode
-      --data=count;
-    END IF;         
-  
-    IF (CLK'EVENT AND CLK='1' AND GATE='0' AND CTRL="ZZ") THEN --only on clk
-                                                               --transitions,
-                                                               --with gate=1
-                                                               --and ctrl in
-                                                               --count mode
-      S_OUT:='0';
-      OUTPUT<='0';
-      CASE MODE IS
-        WHEN "000"=>mode0_count(COUNT,COUNT,S_OUT);
-          
-        WHEN OTHERS => null;        
-      END CASE ; 
-    END IF;
-    OUTPUT<=S_OUT;
+		IF (CTRL="01") THEN                     --programming mode: load mode
+			MODE(0)<=DATA(0);
+			MODE(1)<=DATA(1);
+			MODE(2)<=DATA(2);
+		ELSIF (CTRL="10") THEN                  --programming mode: load lowest
+      			                                --nibble of counter
+			FOR index IN 0 TO 7 LOOP
+				COUNT(index):=DATA(index);
+			END LOOP;
+		ELSIF (CTRL="11") THEN                  --programming mode:load highest
+		                                        --nibble of counter
+			FOR index IN 0 TO 7 LOOP
+				COUNT(index+8):=DATA(index);
+			END LOOP;
+		ELSIF (CTRL="00") THEN                  --reading mode
+      							--data=count;
+		END IF;         
+  	
+	IF (CLK'EVENT AND CLK='1' AND CTRL="ZZ") THEN --only on clk
+    	                                                           --transitions,
+    	                                                  
+    	                                                           --and ctrl in
+    	                                                           --count mode
+      		BUFFER_COUNT:=COUNT;
+		CASE MODE IS
+			WHEN "000"=>
+				IF(GATE='1') THEN	--counting is stopped when GATE is 0;
+					S_OUT:='0';
+					mode0_count(COUNT,COUNT,S_OUT);
+				END IF;
+          		WHEN "100"=>
+				S_OUT:='1';
+				mode4_count(COUNT,COUNT,S_OUT);
+			WHEN "101"=>
+				IF(GATE='1') THEN
+					S_OUT:='1';
+					mode5_count(COUNT,COUNT,S_OUT);
+				END IF;
+			WHEN OTHERS => null;        
+		END CASE ; 
+	END IF;
+	IF(GATE='1') THEN
+		COUNT:=BUFFER_COUNT;
+	END IF;
+--    OUTPUT<=S_OUT;
   END PROCESS;
 
 
