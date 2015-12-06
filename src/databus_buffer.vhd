@@ -8,14 +8,14 @@ ENTITY databus_buffer IS
 -- IDATA:        8 bit bus       ->inout
 -- CTRL:        1 bit control   ->in
 -- ODATA:       8 bit bus       ->inout
-  PORT
-    (
-      --IDATA represent the bus lines that comes from the uC for reading and writing;
-      --ODATA represents the bus lines that communicate with the internal bus;
-      IDATA:    INOUT   STD_LOGIC_VECTOR(7 DOWNTO 0);
-      CTRL:     IN      STD_LOGIC;
-      ODATA:    INOUT   STD_LOGIC_VECTOR(7 DOWNTO 0)
-    );
+	PORT
+	(
+		--IDATA represent the bus lines that comes from the uC for reading and writing;
+		--ODATA represents the bus lines that communicate with the internal bus;
+      		IDATA:    INOUT   STD_LOGIC_VECTOR(7 DOWNTO 0);
+      		CTRL:     IN      STD_LOGIC;
+      		ODATA:    INOUT   STD_LOGIC_VECTOR(7 DOWNTO 0)
+    	);
 
     
 
@@ -31,13 +31,9 @@ BEGIN
 -- cs is active;
 -- also, data bus can be in 3rd state if the chip is not selected, this means
 -- that CTRL will be Z;
-  PROCESS(CTRL,IDATA,ODATA) 
-    BEGIN
-      CASE CTRL IS
-        WHEN '0' => ODATA<=IDATA;--S_idata;
-        WHEN '1' => IDATA<=ODATA;--S_odata;
-        WHEN OTHERS => IDATA<="ZZZZZZZZ";ODATA<="ZZZZZZZZ";
-      END CASE;
-    END PROCESS;            
-  
+
+	
+	ODATA<=IDATA WHEN CTRL='0' else "ZZZZZZZZ";
+	IDATA<=ODATA WHEN CTRL='1' else "ZZZZZZZZ";
+
 END behaviour;  

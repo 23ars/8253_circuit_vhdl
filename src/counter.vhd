@@ -34,6 +34,10 @@ ARCHITECTURE behaviour OF counter IS
  
 	SIGNAL MODE:STD_LOGIC_VECTOR(2 DOWNTO 0):="ZZZ";              --used for
   	                                                              --saving mode
+	SIGNAL BUFFER_MODE:STD_LOGIC_VECTOR(7 DOWNTO 0);
+	SIGNAL BUFFER_DATA_LN:STD_LOGIC_VECTOR(7 DOWNTO 0);
+	SIGNAL BUFFER_DATA_HN:STD_LOGIC_VECTOR(7 DOWNTO 0);
+
 
 	PROCEDURE mode0_count                                         --procedure for
          	                                                      --count mode 0
@@ -83,6 +87,11 @@ ARCHITECTURE behaviour OF counter IS
 
   
 BEGIN
+
+	BUFFER_MODE<=DATA WHEN CTRL="01" else "ZZZZZZZZ";
+	BUFFER_DATA_LN<=DATA WHEN CTRL="10" else "ZZZZZZZZ";
+	BUFFER_DATA_HN<=DATA WHEN CTRL="11" else "ZZZZZZZZ";
+	DATA<=BUFFER_DATA_LN WHEN CTRL="00" else "ZZZZZZZZ";
 	PROCESS(CLK,CTRL) IS
 		VARIABLE COUNT:STD_LOGIC_VECTOR(15 DOWNTO 0):="ZZZZZZZZZZZZZZZZ"; 	--used
 	                                                                  		--for counting
@@ -95,21 +104,27 @@ BEGIN
 		END IF;
     
 		IF (CTRL="01") THEN                     --programming mode: load mode
-			MODE(0)<=DATA(0);
-			MODE(1)<=DATA(1);
-			MODE(2)<=DATA(2);
+			MODE(0)<=BUFFER_MODE(0);
+			MODE(1)<=BUFFER_MODE(1);
+			MODE(2)<=BUFFER_MODE(2);
 		ELSIF (CTRL="10") THEN                  --programming mode: load lowest
       			                                --nibble of counter
 			FOR index IN 0 TO 7 LOOP
-				COUNT(index):=DATA(index);
+				COUNT(index):=BUFFER_DATA_LN(index);
 			END LOOP;
 		ELSIF (CTRL="11") THEN                  --programming mode:load highest
 		                                        --nibble of counter
 			FOR index IN 0 TO 7 LOOP
-				COUNT(index+8):=DATA(index);
+				COUNT(index+8):=BUFFER_DATA_HN(index);
 			END LOOP;
 		ELSIF (CTRL="00") THEN                  --reading mode
       							--data=count;
+			FOR index in 0 TO 7 LOOP
+				BUFFER_DATA_LN(index)<=COUNT(index);
+			END LOOP;
+			FOR index in 0 TO 7 LOOP
+				BUFFER_DATA_LN(index)<=COUNT(index+8);
+			END LOOP;
 		END IF;         
   	
 	IF (CLK'EVENT AND CLK='1' AND CTRL="ZZ") THEN --only on clk
