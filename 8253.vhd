@@ -54,25 +54,27 @@ ARCHITECTURE dataflow OF counter_8253 IS
 --	SIGNAL DATA_BUFFER:STD_LOGIC_VECTOR(7 DOWNTO 0);
 --0=in programming;1=done programming,2=counting others=none
 	TYPE E_ChipState IS(PROGRAMMING,LOADING,COUNTING,NONE);
-	SIGNAL chip_state:E_ChipState;
+	SIGNAL chip_state:E_ChipState:=NONE;
 ----------------------------------------
 -- Counters mode
 ----------------------------------------
-	PROCEDURE mode0_count                                         --procedure for
-         	                                                      --count mode 0
+	PROCEDURE mode0_count                                         		--procedure for
+         	                                                      		--count mode 0
 	(
-		COUNTER:  IN      STD_LOGIC_VECTOR(15 DOWNTO 0);          --input variable
-		RET_COUNT:OUT     STD_LOGIC_VECTOR(15 DOWNTO 0);          --out variable
-		OUTPUT:   OUT     STD_LOGIC                               --value of
-                                                                --output line
+		COUNTER:  IN      STD_LOGIC_VECTOR(15 DOWNTO 0);         	--input variable
+		RET_COUNT:OUT     STD_LOGIC_VECTOR(15 DOWNTO 0);          	--out variable
+		OUTPUT:   OUT     STD_LOGIC;                              	--value of
+                                                                	  	--output line
+		IS_DONE:  OUT	  BOOLEAN
 	)IS
 	BEGIN
-		IF (COUNTER="0000000000000000") THEN                        --if count is 0
-			OUTPUT:='1';                                        --output will
-                                     			                    --be 1
+		IF (COUNTER="0000000000000000") THEN                        	--if count is 0
+			OUTPUT:='1';                                        	--output will
+                                     			                    	--be 1
+			IS_DONE:=TRUE;
 		ELSE
 			RET_COUNT:=std_logic_vector(unsigned(COUNTER)- 1);
- 
+ 			OUTPUT:='0';
 		END IF;
 	END mode0_count;
 	
@@ -80,13 +82,16 @@ ARCHITECTURE dataflow OF counter_8253 IS
 	(
 		COUNTER:	IN	STD_LOGIC_VECTOR(15 DOWNTO 0);
 		RET_COUNT:	OUT	STD_LOGIC_VECTOR(15 DOWNTO 0);
-		OUTPUT:		OUT	STD_LOGIC
+		OUTPUT:		OUT	STD_LOGIC;
+		IS_DONE:  	OUT	BOOLEAN
      	)IS
 	BEGIN
 		IF(COUNTER="0000000000000000") THEN
 			OUTPUT:='0';
+			IS_DONE:=TRUE;
 		ELSE
 			RET_COUNT:=std_logic_vector(unsigned(COUNTER)- 1);
+			OUTPUT:='1';
 		END IF;
 	END mode4_count;
 
@@ -94,13 +99,16 @@ ARCHITECTURE dataflow OF counter_8253 IS
 	(
 		COUNTER:	IN	STD_LOGIC_VECTOR(15 DOWNTO 0);
 		RET_COUNT:	OUT	STD_LOGIC_VECTOR(15 DOWNTO 0);
-		OUTPUT:		OUT	STD_LOGIC
+		OUTPUT:		OUT	STD_LOGIC;
+		IS_DONE:	OUT	BOOLEAN
      	)IS
 	BEGIN
 		IF(COUNTER="0000000000000000") THEN
 			OUTPUT:='0';
+			IS_DONE:=TRUE;
 		ELSE
 			RET_COUNT:=std_logic_vector(unsigned(COUNTER)- 1);
+			OUTPUT:='1';
 		END IF;
 	END mode5_count;
 ----------------------------------------
@@ -112,27 +120,30 @@ ARCHITECTURE dataflow OF counter_8253 IS
 		GATE_IN:	IN	STD_LOGIC;
 		CONST_IN:	IN	STD_LOGIC_VECTOR(15 DOWNTO 0);
 		CONST_OUT:	OUT	STD_LOGIC_VECTOR(15 DOWNTO 0);
-		OUTPUT:		OUT	STD_LOGIC
+		OUTPUT:		OUT	STD_LOGIC;
+		IS_DONE:	OUT	BOOLEAN
 	)	IS
+		VARIABLE IS_DONE_COUNT:BOOLEAN;
 	BEGIN
 		CASE COUNTER_MODE IS
 			WHEN "000"=>		--mode 0 counter
 				OUTPUT:='0';
 				IF(GATE_IN='1') THEN
-					mode0_count(CONST_IN,CONST_OUT,OUTPUT);
+					mode0_count(CONST_IN,CONST_OUT,OUTPUT,IS_DONE_COUNT);
 				END IF;
 			WHEN "100"=>		--mode 1 counter
 				OUTPUT:='1';
 				IF(GATE_IN='1') THEN
-					mode4_count(CONST_IN,CONST_OUT,OUTPUT);
+					mode4_count(CONST_IN,CONST_OUT,OUTPUT,IS_DONE_COUNT);
 				END IF;
 			WHEN "101"=>		--mode 5 counter
 				OUTPUT:='1';
 				IF(GATE_IN='1') THEN
-					mode5_count(CONST_IN,CONST_OUT,OUTPUT);
+					mode5_count(CONST_IN,CONST_OUT,OUTPUT,IS_DONE_COUNT);
 				END IF;
 			WHEN OTHERS=>null;
-		END CASE;		
+		END CASE;	
+		IS_DONE:=IS_DONE_COUNT;	
 	END counter_procedure;
 
   
@@ -148,7 +159,7 @@ BEGIN
 		VARIABLE counter1_value:STD_LOGIC_VECTOR(15 DOWNTO 0):="ZZZZZZZZZZZZZZZZ";
 		VARIABLE counter2_value:STD_LOGIC_VECTOR(15 DOWNTO 0):="ZZZZZZZZZZZZZZZZ";
 		VARIABLE address_op:STD_LOGIC_VECTOR(1 DOWNTO 0);
-
+		VARIABLE is_count_done:BOOLEAN:=FALSE;
 		VARIABLE gate0_var:STD_LOGIC;
 		VARIABLE gate1_var:STD_LOGIC;
 		VARIABLE gate2_var:STD_LOGIC;
@@ -234,25 +245,26 @@ BEGIN
 					WHEN "00" =>
 						IF(CLK0'event AND CLK0='1') THEN
 							gate0_var:=GATE0;
-							counter_procedure(mode,gate0_var,counter0_value,counter0_value,out0_var);
+							counter_procedure(mode,gate0_var,counter0_value,counter0_value,out0_var,is_count_done);
 							OUT0<=out0_var;
 						END IF;	
 					WHEN "01" =>
 						IF(CLK1'event AND CLK0='1') THEN
 							gate1_var:=GATE1;
-							counter_procedure(mode,gate1_var,counter1_value,counter1_value,out1_var);
+							counter_procedure(mode,gate1_var,counter1_value,counter1_value,out1_var,is_count_done);
 							OUT1<=out1_var;
 						END IF;
 					WHEN "10" =>
 						IF(CLK2'event AND CLK0='1' AND gate2_var='1' ) THEN
 							gate2_var:=GATE2;
-							counter_procedure(mode,gate2_var,counter2_value,counter2_value,out2_var);
+							counter_procedure(mode,gate2_var,counter2_value,counter2_value,out2_var,is_count_done);
 							OUT2<=out2_var;
 						END IF;
 					WHEN OTHERS=>null;
 				END CASE;
-				chip_state<=LOADING;
-			
+				if(is_count_done=TRUE) THEN
+					chip_state<=LOADING;
+				END IF;
 			ELSIF(RD='0' AND WR='1' AND chip_state=LOADING) THEN --is read mode
 				CASE address_op IS
 					WHEN "00"=>
@@ -265,6 +277,7 @@ BEGIN
 							--	DATA_BUFFER(index)<=counter0_value(index+8);
 							END LOOP;
 							--if read is complete=> goto programming state
+							is_count_done:=FALSE;
 							chip_state<=PROGRAMMING;
 						END IF;
 					WHEN "01"=>
@@ -277,6 +290,7 @@ BEGIN
 							--	DATA_BUFFER(index)<=counter1_value(index+8);
 							END LOOP;
 							--if read is complete=> goto programming state
+							is_count_done:=FALSE;
 							chip_state<=PROGRAMMING;
 						END IF;
 					WHEN "10"=>
@@ -289,18 +303,21 @@ BEGIN
 							--	DATA_BUFFER(index)<=counter2_value(index+8);
 							END LOOP;
 							--if read is complete=> goto programming state
+							is_count_done:=FALSE;
 							chip_state<=PROGRAMMING;
 						END IF;
 					WHEN OTHERS=>null;
 				END CASE;
 			END IF;
-			IF(chip_state=PROGRAMMING ) THEN --if is in no state or is it in programming state
+			IF(chip_state=PROGRAMMING or chip_state=NONE) THEN --if is in no state or is it in programming state
 				--get counter id, mode and command
 				counter_id:=DATA_BUFFER(7 DOWNTO 6);
 				mode:=DATA_BUFFER(3 DOWNTO 1);
 				command:=DATA_BUFFER(5 DOWNTO 4);
 				--goto done programming mode;
 				chip_state<=LOADING;
+				--set count not done state;
+				is_count_done:=FALSE;
 			END IF;
 		END IF;
 	END PROCESS;
