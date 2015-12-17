@@ -49,7 +49,8 @@ BEGIN
 			when "00"=>null;
 			when "01"=>counter:="01";--select operation 
 			when "10"=>counter:="10";
-			when others=>counter:="ZZ";
+			when "11"=>counter:="ZZ";
+			when others=>null;
 		end case;
 		case ctrl_w_cmd is
 			when "000"=>CMD_1<=counter;--send operation to counter
