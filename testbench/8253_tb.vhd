@@ -73,6 +73,8 @@ BEGIN
 		T_CS<='0';
 		T_RD<='1';
 		T_WR<='0';
+		T_GATE0<='1';
+
 
 		T_A1<='1';
 		T_A0<='1';--write to command register;
@@ -97,6 +99,7 @@ BEGIN
 		T_A1<='1';
 		T_A0<='1';--write to command register;
 		T_D<="00110000";--start counter
+		wait for 5 ns;
 		T_A0<='0';
 		T_A1<='0';
 		wait for 5 ns;
