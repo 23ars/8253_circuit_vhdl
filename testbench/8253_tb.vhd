@@ -20,10 +20,10 @@ ARCHITECTURE dataflow OF counter_8253_tb IS
 	SIGNAL T_CLK2:STD_LOGIC;
 	SIGNAL T_GATE2:STD_LOGIC;
 	SIGNAL T_OUT2:STD_LOGIC;
-  COMPONENT counter_8253 IS
+  COMPONENT circuit_8253 IS
       PORT
 	(
-		D:        IN   STD_LOGIC_VECTOR(7 DOWNTO 0);   	
+		D:        INOUT   STD_LOGIC_VECTOR(7 DOWNTO 0);   	
 	        CS:       IN      STD_LOGIC;
 	        RD:       IN      STD_LOGIC;
 	        WR:       IN      STD_LOGIC;
@@ -42,7 +42,7 @@ ARCHITECTURE dataflow OF counter_8253_tb IS
    END COMPONENT;
 
 BEGIN
-	counter:counter_8253 PORT MAP
+	counter:circuit_8253 PORT MAP
 	(
 		D=>T_D,
 		CS=>T_CS,
@@ -78,24 +78,28 @@ BEGIN
 		T_A0<='1';--write to command register;
 
 		T_D<="00010000";--load low nibble mode 0, counter 0
+		wait for 5 ns;		
 		T_A0<='0';
 		T_A1<='0';
-		wait for 5 ns;		
-		T_D<="00001000";--low nibble 8
+		T_D<="00001000";--low nibble 8 value
 		wait for 5 ns;
+
+
 		T_A1<='1';
 		T_A0<='1';--write to command register;
 		T_D<="00100000";--load low nibble mode 0, counter 0
+		wait for 5 ns;
 		T_A0<='0';
 		T_A1<='0';
+		T_D<="00000000";--high nibble value;
 		wait for 5 ns;
-		T_D<="00000000";--high nibble
 
 		T_A1<='1';
 		T_A0<='1';--write to command register;
 		T_D<="00110000";--start counter
 		T_A0<='0';
 		T_A1<='0';
+		wait for 5 ns;
 		
 	END PROCESS;
 END dataflow;
