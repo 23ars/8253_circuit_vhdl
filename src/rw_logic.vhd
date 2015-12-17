@@ -10,7 +10,6 @@ ENTITY rw_logic IS
 -- A0:          A0, active on 1         ->in
 -- A1:          A1, active on 1         ->in
 -- /CS:         chip select active on 0 ->in
--- CTRLW:       ctrl module             ->out
 -- CTRLD:       ctrl data bus buffer    ->out
 
 --/CS	/RD	/WR	A1	A0	Opera?ia
@@ -27,62 +26,44 @@ ENTITY rw_logic IS
       		WR:       IN      STD_LOGIC;
       		A0:       IN      STD_LOGIC;
       		A1:       IN      STD_LOGIC;
-      		CS:       IN      STD_LOGIC
+      		CS:       IN      STD_LOGIC;
+		CTRLD:	  OUT	  STD_LOGIC;
+		CTRLW:	  OUT	  STD_LOGIC_VECTOR(2 downto 0)
     	);
     
 
 END rw_logic;
 ARCHITECTURE behaviour OF rw_logic IS
-	SIGNAL CTRLW:STD_LOGIC:='Z';
-	SIGNAL CTRLD:STD_LOGIC:='Z';
-	COMPONENT databus_buffer IS
-	PORT
-	(
-
-      		IDATA:    INOUT   STD_LOGIC_VECTOR(7 DOWNTO 0);
-      		CTRL:     IN      STD_LOGIC;
-      		ODATA:    INOUT   STD_LOGIC_VECTOR(7 DOWNTO 0)
-    	);
-	END COMPONENT;
-	COMPONENT ctrl_reg IS
-	PORT
-    	(
-      		CTRLW:    IN      STD_LOGIC;
-      		DATA:     IN      STD_LOGIC_VECTOR(7 DOWNTO 0)
-    	);	
-	END COMPONENT;
-	
 BEGIN
-	bus_buffer:databus_buffer port map
-	(
-		IDATA=>open,
-		ODATA=>open,
-		CTRL=>CTRLD
-	);
-
-	control_reg:ctrl_reg port map
-	(
-		 
-		 DATA=>"00000000",
-		 CTRLW=>CTRLW
-	); 
-
-   	PROCESS(CS,A0,A1)
+	PROCESS
+		variable op:std_logic_vector(1 downto 0);
 	BEGIN
-	IF(CS='0' AND CS'event) THEN		--only if CS=0
-		--check if is read or write!
-		IF(WR='0') THEN			--if is a write event
-			CTRLD<='0';
-			CTRLW<='1';
-		ELSIF(RD='0') THEN
-			CTRLD<='1';
-			CTRLW<='0';
-		ELSE				--nor read or write but CS is active
-			CTRLD<='Z';
-		END IF;		
-
-		
+	CTRLD<='Z';
+	
+	IF(CS='0') THEN
+		op(0):=A0;
+		op(1):=A1;
+		IF(RD='1' and WR='0') THEN
+			CTRLD<='0';--write
+			case op is
+				when "00"=>CTRLW<="000";
+				when "01"=>CTRLW<="001";
+				when "10"=>CTRLW<="010";
+				when "11"=>CTRLW<="011";
+				when others=>CTRLW<="ZZZ";
+			end case;
+		END IF;
+		IF(RD='0' and WR='1') THEN
+			CTRLD<='1';--read
+			case op is
+				when "00"=>CTRLW<="100";
+				when "01"=>CTRLW<="101";
+				when "10"=>CTRLW<="110";
+				when others=>CTRLW<="ZZZ";-->stop counting
+			end case;
+		END IF;
+	
 	END IF;
-
+	WAIT FOR 1 ns;
 	END PROCESS;
 END behaviour;  
