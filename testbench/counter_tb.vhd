@@ -10,7 +10,6 @@ ARCHITECTURE dataflow OF counter_tb IS
 	SIGNAL T_DATA:STD_LOGIC_VECTOR(7 DOWNTO 0);
 	SIGNAL T_CTRL:STD_LOGIC_VECTOR(1 DOWNTO 0);
 	SIGNAL T_MODE:STD_LOGIC_VECTOR(2 DOWNTO 0);
-	SIGNAL T_COUNT:STD_LOGIC_VECTOR(15 DOWNTO 0);
 	COMPONENT counter IS
 		PORT
 		(
@@ -36,9 +35,9 @@ BEGIN
 	PROCESS --concurrent process to generate clock
 	BEGIN
 		T_CLK<='0';
-		WAIT FOR 5 ns;
+		WAIT FOR 1 ns;
 		T_CLK<='1';
-		WAIT FOR 5 ns;
+		WAIT FOR 1 ns;
 	END PROCESS;
 	PROCESS
 	BEGIN
@@ -51,7 +50,7 @@ BEGIN
 		T_DATA<="00000000";--high nibble
 		wait for 5 ns;
 		T_CTRL<="ZZ";
-		wait for 10 ns;
+		wait for 20 ns;
 
 	END PROCESS;
 END dataflow;

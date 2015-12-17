@@ -22,62 +22,13 @@ ENTITY counter IS
 	);
 END counter;
 ARCHITECTURE behaviour OF counter IS
-
-
-
-	PROCEDURE mode0_count                                         --procedure for
-         	                                                      --count mode 0
-	(
-		COUNTER:  IN      STD_LOGIC_VECTOR(15 DOWNTO 0);          --input variable
-		RET_COUNT:OUT     STD_LOGIC_VECTOR(15 DOWNTO 0);          --out variable
-		OUTPUT:   OUT     STD_LOGIC                               --value of
-                                                                --output line
-	)IS
-	BEGIN
-		IF (COUNTER="0000000000000000") THEN                        --if count is 0
-			OUTPUT:='1';                                        --output will
-                                     			                    --be 1
-		ELSE
-			RET_COUNT:=std_logic_vector(unsigned(COUNTER)- 1);
- 
-		END IF;
-	END mode0_count;
-
-	PROCEDURE mode4_count
-	(
-		COUNTER:	IN	STD_LOGIC_VECTOR(15 DOWNTO 0);
-		RET_COUNT:	OUT	STD_LOGIC_VECTOR(15 DOWNTO 0);
-		OUTPUT:		OUT	STD_LOGIC
-     	)IS
-	BEGIN
-		IF(COUNTER="0000000000000000") THEN
-			OUTPUT:='0';
-		ELSE
-			RET_COUNT:=std_logic_vector(unsigned(COUNTER)- 1);
-		END IF;
-	END mode4_count;
-	
-	PROCEDURE mode5_count
-	(
-		COUNTER:	IN	STD_LOGIC_VECTOR(15 DOWNTO 0);
-		RET_COUNT:	OUT	STD_LOGIC_VECTOR(15 DOWNTO 0);
-		OUTPUT:		OUT	STD_LOGIC
-    	)IS
-	BEGIN
-		IF(COUNTER="0000000000000000") THEN
-			OUTPUT:='0';
-		ELSE
-			RET_COUNT:=std_logic_vector(unsigned(COUNTER)- 1);
-		END IF;
-	END mode5_count;
-  
 BEGIN
 	PROCESS(CLK) IS
 		variable count:std_logic_vector(15 downto 0):="ZZZZZZZZZZZZZZZZ";
 		variable mode_var:std_logic_vector(2 downto 0);
-		variable out_var:std_logic;
 	BEGIN
 		IF(CLK'event and CLK='1') THEN
+			mode_var:=MODE;
 			case CTRL is
 				when "01"=>	
 					FOR index IN 0 TO 7 LOOP
@@ -91,22 +42,35 @@ BEGIN
 					case mode_var is
 						when "000"=>
 							if(GATE='1') THEN
-								mode0_count(count,count,out_var);
-								OUTPUT<=out_var;
+								IF (count="0000000000000000") THEN                        
+									OUTPUT<='1';                                       
+                                     			                    
+								ELSE
+									count:=std_logic_vector(unsigned(count)- 1);
+ 									OUTPUT<='0';
+								END IF;
 							else
-								OUTPUT<='0';
+								OUTPUT<='1';
 							end if;
 						when "100"=>
 							if(GATE='1') THEN
-								mode4_count(count,count,out_var);
-								OUTPUT<=out_var;
+								IF(count="0000000000000000") THEN
+									OUTPUT<='0';
+								ELSE
+									count:=std_logic_vector(unsigned(count)- 1);
+									OUTPUT<='1';
+								END IF;
 							else
 								OUTPUT<='1';
 							end if;
 						when "101"=>
 							if(GATE='1') THEN
-								mode5_count(count,count,out_var);
-								OUTPUT<=out_var;
+								IF(count="0000000000000000") THEN
+									OUTPUT<='0';
+								ELSE
+									count:=std_logic_vector(unsigned(count)- 1);
+									OUTPUT<='1';
+								END IF;
 							else
 								OUTPUT<='1';
 							end if;
